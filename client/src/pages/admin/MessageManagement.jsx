@@ -44,7 +44,6 @@ const columns = [
           })
         : "No Attachments";
 
-      return <Avatar alt={params.row.name} src={params.row.avatar} />;
     },
   },
 
