@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
 const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
@@ -21,10 +21,10 @@ const connectDB = async () => {
 const sendToken = (res, user, code, message) => {
   const token = jwt.sign(
     {
-      _id: user._id
+      _id: user._id,
     },
     process.env.JWT_SECRET
-  )
+  );
 
   return res.status(code).cookie("chat-token", token, cookieOptions).json({
     success: true,
@@ -32,11 +32,15 @@ const sendToken = (res, user, code, message) => {
   });
 };
 
-const emitEvent = (req,event,users,data) => {
-  console.log("Emitting event" , event)
-}
+const emitEvent = (req, event, users, data) => {
+  console.log("Emitting event", event);
+};
 
-const deleteFilesFromCloudinary = async (public_ids) => {
-
-}
-export { connectDB, sendToken, cookieOptions, emitEvent, deleteFilesFromCloudinary };
+const deleteFilesFromCloudinary = async (public_ids) => {};
+export {
+  connectDB,
+  sendToken,
+  cookieOptions,
+  emitEvent,
+  deleteFilesFromCloudinary,
+};
