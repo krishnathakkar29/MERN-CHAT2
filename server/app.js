@@ -7,7 +7,6 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./utils/features.js";
 import { errorMiddleware } from "./middlewares/error.js";
 
-
 dotenv.config({
   path: "./.env ",
 });
@@ -16,6 +15,7 @@ const app = express();
 
 const port = process.env.PORT || 3000;
 const adminSecretKey = process.env.ADMIN_SECRET_KEY || "adsasdsdfsdfsdfd";
+const envMode = process.env.NODE_ENV.trim() || "PRODUCTION";
 
 connectDB();
 
@@ -30,8 +30,9 @@ app.use("/admin", adminRoute);
 app.use(errorMiddleware);
 
 app.listen(port, () => {
-  console.log(`server is listening on ${port} `);
+  console.log(
+    `server is listening on ${port} in ${process.env.NODE_ENV} mode `
+  );
 });
 
-
-export {adminSecretKey}
+export { adminSecretKey, envMode };

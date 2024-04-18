@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node -r dotenv/config  app.js",
-    "dev": "nodemon -r dotenv/config app.js"
+    "start": "SET NODE_ENV=PRODUCTION && node -r dotenv/config  app.js",
+    "dev": " SET NODE_ENV=DEVELOPMENT && nodemon -r dotenv/config app.js"
   },
   "keywords": [],
   "author": "",

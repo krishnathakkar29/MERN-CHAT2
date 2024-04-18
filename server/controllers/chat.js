@@ -212,6 +212,14 @@ const leaveGroup = TryCatch(async (req, res, next) => {
 const sendAttachments = TryCatch(async (req, res, next) => {
   const { chatId } = req.body;
 
+  const files = req.files || [];
+
+  if (files.length < 1)
+    return next(new ErrorHandler("Please Upload Attachments", 400));
+
+  if (files.length > 5)
+    return next(new ErrorHandler("Files Can't be more than 5", 400));
+
   const [chat, me] = await Promise.all([
     Chat.findById(chatId),
     User.findById(req.user, "name"),
@@ -219,13 +227,7 @@ const sendAttachments = TryCatch(async (req, res, next) => {
 
   if (!chat) return next(new ErrorHandler("Chat not found", 404));
 
-  const files = req.files || [];
-
-  if (files.length < 1)
-    return next(new ErrorHandler("Please provide attachments", 400));
-
   //upload files on cloudinary
-
   const attachments = [];
 
   const messageForDB = {

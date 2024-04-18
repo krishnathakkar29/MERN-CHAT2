@@ -10,6 +10,11 @@ import { getOtherMembers } from "../lib/helper.js";
 
 const newUser = TryCatch(async (req, res, next) => {
   const { username, bio, name, password } = req.body;
+
+  const file = req.file;
+
+  if (!file) return next(new ErrorHandler("Please Upload Avatar"));
+
   const avatar = {
     public_id: "public_id",
     url: "url",
@@ -235,5 +240,5 @@ export {
   sendFriendRequest,
   acceptFriendRequest,
   getMyNotifications,
-  getMyFriends
+  getMyFriends,
 };
