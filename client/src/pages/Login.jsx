@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useFileHandler, useInputValidation } from "6pp";
+import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 import {
   Avatar,
   Button,
@@ -9,14 +10,21 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
-import { useFileHandler, useInputValidation } from "6pp";
-import { usernameValidator } from "../utils/validators";
+import React, { useState } from "react";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
 import { bgGradient } from "../constants/color";
+import { usernameValidator } from "../utils/validators";
+import axios from "axios";
+import { server } from "../constants/config";
+import { useDispatch, useSelector } from "react-redux";
+import { userExists } from "../redux/reducers/auth";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const toggleLogin = () => setIsLogin((prev) => !prev);
 
   const name = useInputValidation("");
   const bio = useInputValidation("");
@@ -25,13 +33,64 @@ const Login = () => {
 
   const avatar = useFileHandler("single");
 
-  const toggleLogin = () => setIsLogin((prev) => !prev);
-  const handleLogin = (e) => {
+  const dispatch = useDispatch();
+
+  const handleLogin = async (e) => {
     e.preventDefault();
+    console.log(username.value, "passss", password.value);
+    const config = {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    try {
+      const { data } = await axios.post(
+        `${server}/api/v1/user/login`,
+        {
+          username: username.value,
+          password: password.value,
+        },
+        config
+      );
+      dispatch(userExists(true));
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
   };
-  const handleSignUp = (e) => {
+
+  const handleSignUp = async (e) => {
     e.preventDefault();
+
+    const config = {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    };
+
+    const formData = new FormData();
+    formData.append("avatar", avatar.file);
+    formData.append("name", name.value);
+    formData.append("bio", bio.value);
+    formData.append("username", username.value);
+    formData.append("password", password.value);
+
+    try {
+      const { data } = await axios.post(
+        `${server}/api/v1/user/new`,
+        formData,
+        config
+      );
+      dispatch(userExists(true));
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error?.reponse?.data?.message || "Something went wrong");
+    }
   };
+
   return (
     <div
       style={{
@@ -96,6 +155,7 @@ const Login = () => {
                   color="primary"
                   type="submit"
                   fullWidth
+                  disabled={isLoading}
                 >
                   Login
                 </Button>
@@ -104,14 +164,19 @@ const Login = () => {
                   OR
                 </Typography>
 
-                <Button fullWidth variant="text" onClick={toggleLogin}>
+                <Button
+                  disabled={isLoading}
+                  fullWidth
+                  variant="text"
+                  onClick={toggleLogin}
+                >
                   Sign Up Instead
                 </Button>
               </form>
             </>
           ) : (
             <>
-              <Typography variant="h5">SignUp</Typography>
+              <Typography variant="h5">Sign Up</Typography>
               <form
                 style={{
                   width: "100%",
@@ -167,7 +232,7 @@ const Login = () => {
                 <TextField
                   required
                   fullWidth
-                  label="name"
+                  label="Name"
                   margin="normal"
                   variant="outlined"
                   value={name.value}
@@ -183,7 +248,6 @@ const Login = () => {
                   value={bio.value}
                   onChange={bio.changeHandler}
                 />
-
                 <TextField
                   required
                   fullWidth
@@ -219,6 +283,7 @@ const Login = () => {
                   color="primary"
                   type="submit"
                   fullWidth
+                  disabled={isLoading}
                 >
                   Sign Up
                 </Button>
@@ -227,7 +292,12 @@ const Login = () => {
                   OR
                 </Typography>
 
-                <Button fullWidth variant="text" onClick={toggleLogin}>
+                <Button
+                  disabled={isLoading}
+                  fullWidth
+                  variant="text"
+                  onClick={toggleLogin}
+                >
                   Login Instead
                 </Button>
               </form>

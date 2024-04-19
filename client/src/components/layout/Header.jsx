@@ -20,12 +20,18 @@ import {
 } from "@mui/icons-material";
 import { orange } from "../../constants/color";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { userNotExists } from "../../redux/reducers/auth";
+import { server } from "../../constants/config";
 
 const SearchDialog = lazy(() => import("../specific/Search"));
 const NotifcationDialog = lazy(() => import("../specific/Notifications"));
 const NewGroupDialog = lazy(() => import("../specific/NewGroup"));
 
 const Header = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -49,7 +55,17 @@ const Header = () => {
   const openNotification = () => {
     setIsNotification((prev) => !prev);
   };
-  const logoutHandler = () => {};
+  const logoutHandler = async () => {
+    try {
+      const { data } = await axios.get(`${server}/api/v1/user/logout`, {
+        withCredentials: true,
+      });
+      dispatch(userNotExists());
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
+  };
   return (
     <>
       <Box sx={{ flexGrow: 1 }} height={"4rem"}>
@@ -121,19 +137,19 @@ const Header = () => {
       </Box>
 
       {isSearch && (
-         <Suspense fallback={<Backdrop open />}>
+        <Suspense fallback={<Backdrop open />}>
           <SearchDialog />
         </Suspense>
       )}
 
       {isNotification && (
-         <Suspense fallback={<Backdrop open />}>
+        <Suspense fallback={<Backdrop open />}>
           <NotifcationDialog />
         </Suspense>
       )}
 
       {isNewGroup && (
-         <Suspense fallback={<Backdrop open />}>
+        <Suspense fallback={<Backdrop open />}>
           <NewGroupDialog />
         </Suspense>
       )}
