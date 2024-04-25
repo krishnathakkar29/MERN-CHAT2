@@ -1,4 +1,4 @@
-import React, {memo} from "react";
+import React, { memo } from "react";
 import {
   Avatar,
   Button,
@@ -10,16 +10,53 @@ import {
   Typography,
 } from "@mui/material";
 import { sampleNotifications } from "../../constants/sampleData";
+import { useAcceptFriendRequestMutation, useGetNotificationsQuery } from "../../redux/api/api";
+import { useErrors } from "../../hooks/Hook";
+import { useDispatch, useSelector } from "react-redux";
+import { setIsNotification } from "../../redux/reducers/misc";
+import toast, { Toaster } from "react-hot-toast";
 
 const Notifications = () => {
 
-  const friendRequestHandler = ({_id,accept}) => {}
+  const dispatch = useDispatch()
+
+  const {isNotification} = useSelector(state => state.misc)
+  const { data, isError, error, isLoading } = useGetNotificationsQuery();
+
+  const [acceptRequest] = useAcceptFriendRequestMutation()
+
+  //errors
+  useErrors([{ error, isError }]);
+
+  //adding or rejecting friend
+  const friendRequestHandler = async ({ _id, accept }) => {
+    dispatch(setIsNotification(false))
+    try {
+      const res = await acceptRequest({requestId: _id, accept})
+
+      if(res?.data?.success){
+        //useSocket
+        toast.success(res.data.message)
+      }
+      else{
+        toast.error(res?.data?.message || "Somethig went wrong")
+      }
+    } catch (error) {
+      toast.error("Something went wrong")
+      console.log(error)
+    }
+  };
+
+  //close Handler
+  const closeHandler = () => dispatch(setIsNotification(false))
   return (
-    <Dialog open>
+    <Dialog open={isNotification} onClose={closeHandler}>
       <Stack p={{ xs: "1rem", sm: "2rem" }} maxWidth={"25rem"}>
         <DialogTitle>Notifications</DialogTitle>
-        {sampleNotifications.length > 0 ? (
-          sampleNotifications.map(({ sender, _id }) => (
+        {isLoading ? (
+          <Skeleton />
+        ) : data?.allRequests.length > 0 ? (
+          data?.allRequests?.map(({ sender, _id }) => (
             <NotificationItem
               sender={sender}
               _id={_id}
