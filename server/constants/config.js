@@ -8,4 +8,6 @@ const corsOptions = {
     credentials: true,
   };
 
-  export {corsOptions}
+  const TOKEN_NAME = 'chat-token'
+
+  export {corsOptions, TOKEN_NAME}

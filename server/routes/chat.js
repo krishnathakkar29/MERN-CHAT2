@@ -50,7 +50,7 @@ app.post(
   sendAttachmentsValidator(),
   validateHandler,
   sendAttachments
-);
+)
 
 //get messages
 app.get("/message/:id", chatIdValidator(), validateHandler, getMessages);
