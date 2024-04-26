@@ -12,6 +12,21 @@ const useErrors = (errors = []) => {
     }, [errors])
 }
 
+const useSocketEvents = (socket,handlers) => {
+    useEffect(() => {
+        Object.entries(handlers).map(([event, handler]  ) => {
+            socket.on(event,handler)
+        })
+
+        return () => {
+            Object.entries(handlers).map(([event, handler]) => {
+                socket.off(event,handler)
+            })
+        }
+    }, [socket,handlers])
+}
+
 export {
-    useErrors
+    useErrors,
+    useSocketEvents
 }
