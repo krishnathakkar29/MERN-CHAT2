@@ -415,7 +415,7 @@ const getMessages = TryCatch(async (req, res, next) => {
 });
 
 //add member and create group, remove member alert and refetchChats
-//attachments -> new attachemnt and new message alert
+//attachments -> new message and new message alert
 // renameGroup, deleteChat refetch chats
 //lean , flatMAP
 export {

@@ -231,7 +231,7 @@ const getMyFriends = TryCatch(async (req, res) => {
 
 //Socket io
 //sendFriend Request-> new request
-//accept request -> refetch Chats
+//accept request -> refetch Chats --baak
 
 export {
   newUser,
