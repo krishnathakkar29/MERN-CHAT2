@@ -37,7 +37,7 @@ const Search = () => {
         .then(({ data }) => {
           setUsers(data.users);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.log("Searh component ke andar hu:- " + err));
     }, 1000);
 
     return () => {
@@ -49,7 +49,9 @@ const Search = () => {
 
   const addFriendHandler = async (_id) => {
     setIsLoading(true);
-    const toastId = toast.loading("Sending Friend Request" || "Updating data...");
+    const toastId = toast.loading(
+      "Sending Friend Request" || "Updating data..."
+    );
     try {
       const res = await sendFriendRequest({ userId: _id });
       if (res.data) {

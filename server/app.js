@@ -10,11 +10,12 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import { corsOptions } from "./constants/config.js";
 import cors from "cors";
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./constants/events.js";
+import { NEW_MESSAGE, NEW_MESSAGE_ALERT, START_TYPING, STOP_TYPING } from "./constants/events.js";
 import { v4 as uuid } from "uuid";
-import {v2 as cloudinary} from 'cloudinary'
+import { v2 as cloudinary } from "cloudinary";
 import { getSockets } from "./lib/helper.js";
 import { Message } from "./models/message.js";
+import { socketAuthenticator } from "./middlewares/auth.js";
 
 dotenv.config({
   path: "./.env ",
@@ -23,8 +24,10 @@ dotenv.config({
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-  corsOptions,
+  cors: corsOptions,
 });
+
+app.set("io",io)
 
 const port = process.env.PORT || 3000;
 const adminSecretKey = process.env.ADMIN_SECRET_KEY || "adsasdsdfsdfsdfd";
@@ -32,10 +35,10 @@ const envMode = process.env.NODE_ENV.trim() || "PRODUCTION";
 const userSocketIDs = new Map();
 
 connectDB();
-cloudinary.config({ 
+cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret:process.env.CLOUDINARY_API_SECRET
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 app.use(express.json());
@@ -47,11 +50,14 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/chat", chatRoute);
 app.use("/api/v1/admin", adminRoute);
 
+io.use((socket, next) => {
+  cookieParser()(socket.request, socket.request.res, async (err) => {
+    await socketAuthenticator(err, socket, next);
+  });
+});
+
 io.on("connection", (socket) => {
-  const user = {
-    _id: "userId",
-    name: "userName",
-  };
+  const user = socket.user;
   userSocketIDs.set(user._id.toString(), socket.id);
 
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
@@ -69,11 +75,11 @@ io.on("connection", (socket) => {
     const messageForDB = {
       content: message,
       sender: user._id,
-      chatId,
+      chat: chatId,
     };
 
     const membersSockets = getSockets(members);
-
+    
     io.to(membersSockets).emit(NEW_MESSAGE, {
       chatId,
       message: messageForRealTime,
@@ -87,6 +93,18 @@ io.on("connection", (socket) => {
       console.log("DB MESSAGE SOCKET...", error);
     }
   });
+
+  socket.on(START_TYPING, ({members,chatId}) => {
+    const membersSockets = getSockets(members);
+
+    socket.to(membersSockets).emit(START_TYPING , {chatId})
+  })
+
+  socket.on(STOP_TYPING, ({members,chatId}) => {
+    const membersSockets = getSockets(members);
+
+    socket.to(membersSockets).emit(STOP_TYPING , {chatId})
+  })
 
   socket.on("disconnect", () => {
     userSocketIDs.delete(user._id.toString());
