@@ -31,7 +31,7 @@ import { setIsFileMenu } from "../redux/reducers/misc";
 import { useDispatch, useSelector } from "react-redux";
 import { removeNewMessagesAlert } from "../redux/reducers/chat";
 import { TypingLoader } from "../components/layout/Loaders";
-import { v2 as uuid } from "uuid";
+import { v4 as uuid } from "uuid";
 
 const Chat = ({ chatId, user }) => {
   const dispatch = useDispatch();
@@ -72,6 +72,7 @@ const Chat = ({ chatId, user }) => {
     dispatch(removeNewMessagesAlert(chatId));
 
     return () => {
+      //whenever chatId gets changed this will
       setMessages([]);
       setMessage("");
       setOldMessages([]);
@@ -98,7 +99,7 @@ const Chat = ({ chatId, user }) => {
     typingTimeout.current = setTimeout(() => {
       socket.emit(STOP_TYPING, { members, chatId });
       setIAmTyping(false);
-    }, 2000);
+    }, [2000]);
   };
 
   const handleFileOpen = (e) => {
@@ -141,29 +142,29 @@ const Chat = ({ chatId, user }) => {
     [chatId]
   );
 
-  const alertListener = useCallback(
-    (content) => {
-      const messageForAlert = {
-        content,
-        _id: uuid(),
-        sender: {
-          _id: Math.floor(Math.random() * 10 + 1),
-          name: "Admin",
-        },
-        chat: chatId,
-        cratedAt: new Date().toISOString(),
-      };
+  // const alertListener = useCallback(
+  //   (content) => {
+  //     const messageForAlert = {
+  //       content,
+  //       _id: uuid(),
+  //       sender: {
+  //         _id: Math.floor(Math.random() * 10 + 1),
+  //         name: "Admin",
+  //       },
+  //       chat: chatId,
+  //       cratedAt: new Date().toISOString(),
+  //     };
 
-      setMessages((prev) => [...prev, messageForAlert]);
-    },
-    [chatId]
-  );
+  //     setMessages((prev) => [...prev, messageForAlert]);
+  //   },
+  //   [chatId]
+  // );
 
   const eventsHandlers = {
     [NEW_MESSAGE]: newMessagesListener,
     [START_TYPING]: startTypingListener,
     [STOP_TYPING]: stopTypingListener,
-    [ALERT]: alertListener,
+    // [ALERT]: alertListener,
   };
 
   useSocketEvents(socket, eventsHandlers);
