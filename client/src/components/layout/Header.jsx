@@ -27,6 +27,7 @@ import { userNotExists } from "../../redux/reducers/auth";
 import { server } from "../../constants/config";
 import {
   setIsMobile,
+  setIsNewGroup,
   setIsNotification,
   setIsSearch,
 } from "../../redux/reducers/misc";
@@ -40,10 +41,10 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isSearch, isNotification } = useSelector((state) => state.misc);
+  const { isSearch, isNotification, isNewGroup } = useSelector(
+    (state) => state.misc
+  );
   const { notificationCount } = useSelector((state) => state.chat);
-
-  const [isNewGroup, setIsNewGroup] = useState(false);
 
   //mobile drawer
   const handleMobile = () => dispatch(setIsMobile(true));
@@ -53,12 +54,12 @@ const Header = () => {
 
   //notifications
   const openNotification = () => {
-    dispatch(setIsNotification(true))
-    dispatch(resetNotificationCount())
+    dispatch(setIsNotification(true));
+    dispatch(resetNotificationCount());
   };
 
   const openNewGroup = () => {
-    setIsNewGroup((prev) => !prev);
+    dispatch(setIsNewGroup(true));
   };
   const navigateToGroup = () => {
     navigate("/groups");
@@ -171,9 +172,13 @@ const IconBtn = ({ title, icon, onClick, value }) => {
   return (
     <Tooltip title={title}>
       <IconButton color="inherit" size="large" onClick={onClick}>
-       {
-        value ? <Badge badgeContent={value} color='error'>{icon}</Badge>  : icon 
-       }
+        {value ? (
+          <Badge badgeContent={value} color="error">
+            {icon}
+          </Badge>
+        ) : (
+          icon
+        )}
       </IconButton>
     </Tooltip>
   );
