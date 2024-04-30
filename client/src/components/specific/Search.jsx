@@ -65,7 +65,7 @@ const Search = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Somethinf went wrong", {
+      toast.error("Something went wrong", {
         id: toastId,
       });
     } finally {
