@@ -1,4 +1,3 @@
-import React, { memo } from "react";
 import {
   Avatar,
   Button,
@@ -9,46 +8,36 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { sampleNotifications } from "../../constants/sampleData";
-import { useAcceptFriendRequestMutation, useGetNotificationsQuery } from "../../redux/api/api";
-import { useErrors } from "../../hooks/Hook";
+import React, { memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useAsyncMutation, useErrors } from "../../hooks/Hook";
+import {
+  useAcceptFriendRequestMutation,
+  useGetNotificationsQuery,
+} from "../../redux/api/api";
 import { setIsNotification } from "../../redux/reducers/misc";
-import toast, { Toaster } from "react-hot-toast";
 
 const Notifications = () => {
+  const dispatch = useDispatch();
 
-  const dispatch = useDispatch()
-
-  const {isNotification} = useSelector(state => state.misc)
+  const { isNotification } = useSelector((state) => state.misc);
   const { data, isError, error, isLoading } = useGetNotificationsQuery();
 
-  const [acceptRequest] = useAcceptFriendRequestMutation()
+  const [acceptRequest] = useAsyncMutation(useAcceptFriendRequestMutation);
 
   //errors
   useErrors([{ error, isError }]);
 
   //adding or rejecting friend
   const friendRequestHandler = async ({ _id, accept }) => {
-    dispatch(setIsNotification(false))
-    try {
-      const res = await acceptRequest({requestId: _id, accept})
-
-      if(res?.data?.success){
-        //useSocket
-        toast.success(res.data.message)
-      }
-      else{
-        toast.error(res?.data?.message || "Somethig went wrong")
-      }
-    } catch (error) {
-      toast.error("Something went wrong")
-      console.log(error)
-    }
+    dispatch(setIsNotification(false));
+    
+    await acceptRequest("Accepting",{ requestId: _id, accept})
+    
   };
 
   //close Handler
-  const closeHandler = () => dispatch(setIsNotification(false))
+  const closeHandler = () => dispatch(setIsNotification(false));
   return (
     <Dialog open={isNotification} onClose={closeHandler}>
       <Stack p={{ xs: "1rem", sm: "2rem" }} maxWidth={"25rem"}>

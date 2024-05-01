@@ -18,7 +18,7 @@ import {
   useAvailableFriendsQuery,
   useNewGroupMutation,
 } from "../../redux/api/api";
-import { useErrors } from "../../hooks/Hook";
+import { useAsyncMutation, useErrors } from "../../hooks/Hook";
 import { setIsNewGroup } from "../../redux/reducers/misc";
 import toast from "react-hot-toast";
 
@@ -31,7 +31,7 @@ const NewGroup = () => {
   const [isLoaderNayaGrp, setIsLoaderNayaGrp] = useState(false);
 
   const { isError, error, isLoading, data } = useAvailableFriendsQuery();
-  const [nayaGroup] = useNewGroupMutation();
+  const [nayaGroup, isLoadingNewGroup] = useAsyncMutation(useNewGroupMutation)
 
   const errors = [
     {
@@ -59,29 +59,10 @@ const NewGroup = () => {
       return toast.error("Please Select Atleast 3 Members");
 
     //creating a new Group
-    setIsLoaderNayaGrp(true);
-    const toastId = toast.loading("Creating Group");
-    try {
-      const res = await nayaGroup({
-        name: groupName.value,
-        members: selectedMembers,
-      });
-      if (res.data) {
-        toast.success(res.data.message || "Updated data successfully", {
-          id: toastId,
-        });
-      } else {
-        toast.error(res?.error?.data?.message || "Something went wrong", {
-          id: toastId,
-        });
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong", { id: toastId });
-    } finally {
-      setIsLoaderNayaGrp(false);
-    }
-
+    nayaGroup("Creating New Group...",{
+      name: groupName.value,
+      members: selectedMembers
+    })
     closeHandler();
   };
 
@@ -127,7 +108,7 @@ const NewGroup = () => {
             variant="contained"
             size="large"
             onClick={submitHandler}
-            disabled={isLoaderNayaGrp}
+            disabled={isLoadingNewGroup}
           >
             Create
           </Button>

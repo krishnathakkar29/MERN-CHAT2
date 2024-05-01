@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "SET NODE_ENV=PRODUCTION && node -r dotenv/config  app.js",
-    "dev": " SET NODE_ENV=DEVELOPMENT && nodemon -r dotenv/config app.js"
+    "dev": " SET NODE_ENV=PRODUCTION && nodemon -r dotenv/config app.js"
   },
   "keywords": [],
   "author": "",

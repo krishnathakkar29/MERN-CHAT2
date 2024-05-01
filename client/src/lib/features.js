@@ -41,10 +41,11 @@ const getLast7Days = () => {
 
 const getOrSaveFromStorage = ({ key, value, get }) => {
   if (get) {
+    console.log(localStorage.getItem(key))
     if (localStorage.getItem(key)) {
       return JSON.parse(localStorage.getItem(key));
     } else {
-      return null
+      return null;
     }
   } else {
     localStorage.setItem(key, JSON.stringify(value));

@@ -1,3 +1,9 @@
+import { useInfiniteScrollTop } from "6pp";
+import {
+  AttachFile as AttachFileIcon,
+  Send as SendIcon,
+} from "@mui/icons-material";
+import { IconButton, Skeleton, Stack } from "@mui/material";
 import React, {
   Fragment,
   useCallback,
@@ -5,39 +11,35 @@ import React, {
   useRef,
   useState,
 } from "react";
-import AppLayout from "../components/layout/AppLayout";
-import { Stack, IconButton, Skeleton } from "@mui/material";
-import {
-  AttachFile as AttachFileIcon,
-  Send as SendIcon,
-  SentimentSatisfiedOutlined,
-} from "@mui/icons-material";
-import { grayColor, orange } from "../constants/color";
-import { InputBox } from "../components/styles/StyledComponents";
-import FileMenu from "../components/dialogs/FileMenu";
-import { sampleMessage } from "../constants/sampleData";
-import MessageComponent from "../components/shared/MessageComponent";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { getSocket } from "../Socket";
+import FileMenu from "../components/dialogs/FileMenu";
+import AppLayout from "../components/layout/AppLayout";
+import { TypingLoader } from "../components/layout/Loaders";
+import MessageComponent from "../components/shared/MessageComponent";
+import { InputBox } from "../components/styles/StyledComponents";
+import { grayColor, orange } from "../constants/color";
 import {
   ALERT,
+  CHAT_JOINED,
+  CHAT_LEAVED,
   NEW_MESSAGE,
   START_TYPING,
   STOP_TYPING,
 } from "../constants/events";
+import { useErrors,useSocketEvents } from "../hooks/Hook";
 import { useChatDetailsQuery, useGetMessagesQuery } from "../redux/api/api";
-import { useErrors, useSocketEvents } from "../hooks/Hook";
-import { useInfiniteScrollTop } from "6pp";
-import { setIsFileMenu } from "../redux/reducers/misc";
-import { useDispatch, useSelector } from "react-redux";
 import { removeNewMessagesAlert } from "../redux/reducers/chat";
-import { TypingLoader } from "../components/layout/Loaders";
-import { v4 as uuid } from "uuid";
+import { setIsFileMenu } from "../redux/reducers/misc";
 
 const Chat = ({ chatId, user }) => {
   const dispatch = useDispatch();
   const socket = getSocket();
   const containerRef = useRef(null);
   const bottomRef = useRef(null);
+  const navigate = useNavigate();
+
   const { newMessagesAlert } = useSelector((state) => state.chat);
 
   const [message, setMessage] = useState("");
@@ -69,6 +71,8 @@ const Chat = ({ chatId, user }) => {
 
   //re rendering on change of chatId to get the previous chat& newMessageAlert clear
   useEffect(() => {
+    socket.emit(CHAT_JOINED, { userId: user._id, members });
+
     dispatch(removeNewMessagesAlert(chatId));
 
     return () => {
@@ -77,6 +81,7 @@ const Chat = ({ chatId, user }) => {
       setMessage("");
       setOldMessages([]);
       setPage(1);
+      socket.emit(CHAT_LEAVED, { userId: user._id, members });
     };
   }, [chatId]);
 
@@ -84,6 +89,11 @@ const Chat = ({ chatId, user }) => {
     if (bottomRef.current)
       bottomRef.current.scrollIntoView({ behaviour: "smooth" });
   }, [messages]);
+
+  //if i am not a member , then i cannot read chats by copying the url
+  useEffect(() => {
+    if (chatDetails.isError) return navigate("/");
+  }, [chatDetails.isError]);
 
   //All handlers
   const messageOnChange = (e) => {
@@ -142,29 +152,29 @@ const Chat = ({ chatId, user }) => {
     [chatId]
   );
 
-  // const alertListener = useCallback(
-  //   (content) => {
-  //     const messageForAlert = {
-  //       content,
-  //       _id: uuid(),
-  //       sender: {
-  //         _id: Math.floor(Math.random() * 10 + 1),
-  //         name: "Admin",
-  //       },
-  //       chat: chatId,
-  //       cratedAt: new Date().toISOString(),
-  //     };
+  const alertListener = useCallback(
+    (data) => {
+      if (data.chatId !== chatId) return;
+      const messageForAlert = {
+        content: data.message,
+        sender: {
+          _id: "djasdhajksdhasdsadasdas",
+          name: "Admin",
+        },
+        chat: chatId,
+        createdAt: new Date().toISOString(),
+      };
 
-  //     setMessages((prev) => [...prev, messageForAlert]);
-  //   },
-  //   [chatId]
-  // );
+      setMessages((prev) => [...prev, messageForAlert]);
+    },
+    [chatId]
+  );
 
   const eventsHandlers = {
     [NEW_MESSAGE]: newMessagesListener,
     [START_TYPING]: startTypingListener,
     [STOP_TYPING]: stopTypingListener,
-    // [ALERT]: alertListener,
+    [ALERT]: alertListener,
   };
 
   useSocketEvents(socket, eventsHandlers);
